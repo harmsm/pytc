@@ -8,7 +8,6 @@ related to the prozone effect.
 __author__ = "Martin L. Rennie"
 __date__ = "2018-02-22"
 
-import inspect
 import numpy as np
 from scipy.optimize import root as solve_mass_balance
 from scipy.optimize import OptimizeResult
@@ -19,24 +18,33 @@ class AssemblyAutoInhibition(ITCModel):
     """
     Model of ligand-mediated protein assembly and autoinhibition of the assembly,
     related to the prozone effect.
+
+    Parameters:
+
+    Klig1: association constant for binding of the first ligand to the protein (M)
+    Klig2: association constant for binding of the second ligand to the protein (M)
+    Kolig: "unit normalised" association constant for formation of the protein oligomer (M)
+    dHlig1: enthalpy for binding of the first ligand to the protein
+    dHlig2: enthalpy for binding of the second ligand to the protein
+    dHolig: enthalpy for formation of the protein oligomer
+    n_lig: stoichiometry of ligands in the protein oligomer
+    n_prot: stoichiometry of proteins in the protein oligomer
+    fx_prot_competent: fraction of binding competent protein
+    fx_lig_competent: fraction of binding competent ligand
+
     """
 
-    def param_definition(Klig1=1e7,Klig2=1e5,Kolig=1e6,dHlig1=-5000.,
-                            dHlig2=-5000.,dHolig=-10000.,n_lig=5.,n_prot=4.,fx_prot_competent=1.0,fx_lig_competent=1.0):
-        """
-        Klig1: association constant for binding of the first ligand to the protein (M)
-        Klig2: association constant for binding of the second ligand to the protein (M)
-        Kolig: "unit normalised" association constant for formation of the protein oligomer (M)
-        dHlig1: enthalpy for binding of the first ligand to the protein
-        dHlig2: enthalpy for binding of the second ligand to the protein
-        dHolig: enthalpy for formation of the protein oligomer
-        n_lig: stoichiometry of ligands in the protein oligomer
-        n_prot: stoichiometry of proteins in the protein oligomer
-        fx_prot_competent: fraction of binding competent protein
-        fx_lig_competent: fraction of binding competent ligand
-        """
 
-        pass
+    default_param_guesses = {"Klig1":1e7,
+                             "Klig2":1e5,
+                             "Kolig":1e6,
+                             "dHlig1":-5000.,
+                             "dHlig2":-5000.,
+                             "dHolig":-10000.,
+                             "n_lig":5.,
+                             "n_prot":4.,
+                             "fx_prot_competent":1.0,
+                             "fx_lig_competent":1.0}
 
     def __init__(self,
                  S_cell=100e-6,S_syringe=0.0,

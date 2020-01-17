@@ -8,7 +8,7 @@ experiments.
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
-from . import fitters
+import likelihood as fitters
 from . global_connectors import GlobalConnector
 
 import numpy as np

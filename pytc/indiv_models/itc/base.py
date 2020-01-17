@@ -7,7 +7,6 @@ Base class for other itc model description.
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
-import inspect
 import numpy as np
 from ..base import PytcModel
 
@@ -47,9 +46,6 @@ class ITCModel(PytcModel):
         # Add dilution parameters
         self._initialize_param(param_names=["dilution_heat","dilution_intercept"],
                                param_guesses=[0.0,0.0])
-
-    def param_definition(self):
-        pass
 
     @property
     def dQ(self):

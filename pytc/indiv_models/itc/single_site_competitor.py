@@ -18,11 +18,12 @@ class SingleSiteCompetitor(ITCModel):
     doi:10.1006/abio.1999.4402
     http://www.sciencedirect.com/science/article/pii/S0003269799944020
     """
- 
-    def param_definition(K=1e6,Kcompetitor=1e6,
-                         dH=-4000,dHcompetitor=-4000,
-                         fx_competent=1.0):
-        pass
+
+    default_param_guesses = {"K":1e6,
+                             "Kcompetitor":1e6,
+                             "dH":-4000,
+                             "dHcompetitor":-4000,
+                             "fx_competent":1.0}
 
     def __init__(self,
                  S_cell=100e-6,S_syringe=0.0,

@@ -7,7 +7,6 @@ Models subclassed from ITCModel used to model (and fit) ITC data.
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
-import inspect
 import numpy as np
 import scipy.optimize
 from .base import ITCModel
@@ -19,13 +18,7 @@ class BindingPolynomial(ITCModel):
     Base class for a binding polynomial fit.
     """
 
-    def param_definition(fx_competent=1.0):
-        """
-        Define fraction competent.  The binding polynomial parameters are built
-        on the fly using the ._initialize_parameters below.
-        """
-
-        pass
+    default_param_guesses = {"fx_competent":1.0}
 
     def __init__(self,
                  num_sites=1,

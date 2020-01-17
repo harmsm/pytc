@@ -18,9 +18,8 @@ class Blank(ITCModel):
     required or actually used in the fitting.
     """
 
-    def param_definition():
-        pass
-    
+    default_param_guesses = {}
+
     @property
     def dQ(self):
         """

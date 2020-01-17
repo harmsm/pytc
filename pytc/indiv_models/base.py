@@ -7,7 +7,6 @@ Base class for all model description.
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
-import inspect
 import numpy as np
 from .. import fit_param
 
@@ -20,7 +19,8 @@ class PytcModel:
         """
         """
 
-        pass
+        # Add dilution parameters
+        self._initialize_param()
 
     def _initialize_param(self,param_names=None,param_guesses=None):
         """
@@ -34,25 +34,22 @@ class PytcModel:
         if param_guesses == None:
             param_guesses = []
 
-        # Grab parameter names and guesses from the self.param_definition function
-        a = inspect.getargspec(self.param_definition)
+        if len(param_names) != len(param_guesses):
+            err = "parameter names and parameter guesses must have the same\n"
+            err += "length.\n"
+            raise ValueError(err)
 
-        if type(a.args) != None:
+        # Grab parameter names and guesses from self.default_param_guesses (if
+        # specified).  Anything specified in _initialize_param arguments will
+        # be taken rather than these values.
+        try:
 
-            args = list(a.args)
-            try:
-                args.remove("self")
-            except ValueError:
-                pass
-
-        if len(args) != 0:
-
-            if len(args) != len(a.defaults):
-                err = "all parameters in self.param_definition must have a default value.\n"
-                raise ValueError(err)
-
-            param_names.extend(args)
-            param_guesses.extend(list(a.defaults))
+            for p in self.default_param_guesses.keys():
+                if p not in param_names:
+                    param_names.append(p)
+                    param_guesses.append(self.default_param_guesses[p])
+        except AttributeError:
+            pass
 
         for i, p in enumerate(param_names):
             self._params[p] = fit_param.FitParameter(p,guess=param_guesses[i])

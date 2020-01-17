@@ -16,8 +16,9 @@ class SingleSite(ITCModel):
     Binding at a single site.
     """
 
-    def param_definition(K=1e6,dH=-4000.0,fx_competent=1.0):
-        pass
+    default_param_guesses = {"K":1e6,
+                             "dH":-4000.0,
+                             "fx_competent":1.0}
 
     @property
     def dQ(self):
@@ -35,7 +36,7 @@ class SingleSite(ITCModel):
 
         # ---- Relate mole fractions to heat -----
         X = self.param_values["dH"]*(mol_fx_st[1:] - mol_fx_st[:-1])
-   
+
         to_return = self._cell_volume*S_conc_corr[1:]*X + self.dilution_heats
 
         return to_return
