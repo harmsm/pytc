@@ -1,7 +1,7 @@
 __description__ = \
 """
-Fit a collection of ITC experiments at different temperatures to extract the 
-heat capacity change upon binding, as well as the enthalpy and binding 
+Fit a collection of experiments at different temperatures to extract the
+heat capacity change upon binding, as well as the enthalpy and binding
 constant at at the defined reference temperature.
 """
 __author__ = "Michael J. Harms"
@@ -12,14 +12,14 @@ from . import GlobalConnector
 
 class VantHoffExtended(GlobalConnector):
     """
-    Fit a collection of ITC experiments at different temperatures to extract the 
-    heat capacity change upon binding, as well as the enthalpy and binding 
+    Fit a collection of experiments at different temperatures to extract the 
+    heat capacity change upon binding, as well as the enthalpy and binding
     constant at at the defined reference temperature.
     """
 
     param_guesses = {"K_ref":1.0,"dH_ref":0.0,"dCp":0.0}
     required_data = ["temperature"]
-    
+
     def __init__(self,name,reference_temp=298.15):
         """
         Initialize the VantHoffExtended class, defining the fitting parameters.
@@ -47,10 +47,9 @@ class VantHoffExtended(GlobalConnector):
     def dH(self,experiment):
         """
         Return the enthalpy change of binding at a given temperature, determined
-        from the enthalpy change at the reference temperature and the heat 
+        from the enthalpy change at the reference temperature and the heat
         capacity change on binding.
         """
 
         T = experiment.temperature + 273.15
         return self.dH_ref + self.dCp*(T - self.reference_temp)
-

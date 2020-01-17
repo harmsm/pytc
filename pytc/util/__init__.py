@@ -1,6 +1,6 @@
 __description__ = \
 """
-Utility functions for doing itc fitting.
+Utility functions for doing fitting.
 """
 __author__ = "Michael J. Harms"
 __date__ = "2017-01-06"

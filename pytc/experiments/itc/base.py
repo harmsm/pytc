@@ -2,15 +2,15 @@ __description__ = \
 """
 experiments.py
 
-Classes for loading experimental data and associating those data with a
+Classes for loading experimental ITC data and associating those data with a
 model.
 
-Units:
+Units: 
     Volumes are in microliters
     Temperatures are in Kelvin
     Concentrations are in molar
-    Energy is `units`, where `units` is specified when instantiating the
-    PytcExperiment class.  It must be a in the AVAIL_UNITS dictionary.
+    Energy is `units`, where `units` is specified when instantiating the 
+    ITCExperiment class.  It must be a in the AVAIL_UNITS dictionary.
 """
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
@@ -18,9 +18,9 @@ __date__ = "2016-06-22"
 import random, string, os
 import numpy as np
 
-class PytcExperiment:
+class BaseITCExperiment:
     """
-    Class that holds an experimental measurement and a model that describes it.
+    Class that holds an experimental ITC measurement and a model that describes it.
     """
 
     AVAIL_UNITS = {"cal/mol":1.9872036,
@@ -28,26 +28,26 @@ class PytcExperiment:
                    "J/mol":8.3144598,
                    "kJ/mol":0.0083144598}
 
-    def __init__(self,data_file,model,units="cal/mol",
+    def __init__(self,dh_file,model,shot_start=1,units="cal/mol",
                  uncertainty=0.1,**model_kwargs):
         """
 
         Parameters
         ----------
 
-        data_file: string
-            file containing experimental results
-        model: PytcModel subclass instance
-            PytcModel subclass to use for modeling
+        dh_file: string
+            integrated heats file written out by origin software.
+        model: ITCModel subclass instance
+            ITCModel subclass to use for modeling
         shot_start: int
             what shot to use as the first real point.  Shots start at 0, so
             default=1 discards first point.
         units : string
-            file units ("cal/mol","kcal/mol","J/mol","kJ/mol")
+            file units ("cal/mol","kcal/mol","J/mol","kJ/mol") 
         uncertainty : float > 0.0
             uncertainty in integrated heats (set to same for all shots, unless
-            specified in something like NITPIC output file).
-
+            specified in something like NITPIC output file). 
+ 
         **model_kwargs: any keyword arguments to pass to the model.  Any
                         keywords passed here will override whatever is
                         stored in the dh_file.
@@ -155,7 +155,7 @@ class PytcExperiment:
         """
         Starting shot to use.
         """
-
+        
         return self._shot_start
 
     @shot_start.setter
@@ -167,35 +167,35 @@ class PytcExperiment:
         self._shot_start = value
 
     @property
-    def obs(self):
+    def heats(self):
         """
-        Return experimental observable.
+        Return experimental heats.
         """
-        return self._obs[:]
+        return self._heats[self._shot_start:]
 
     @heats.setter
-    def obs(self,obs):
+    def heats(self,heats):
         """
-        Set the obs.
+        Set the heats.
         """
-
-        self._obs[:] = obs[:]
+        
+        self._heats[self._shot_start:] = heats[:]
 
     @property
-    def obs_stdev(self):
+    def heats_stdev(self):
         """
-        Standard deviation on the uncertainty of the observable.
-        """
-
-        return self._obs_stdev[:]
-
-    @obs_stdev.setter
-    def obs_stdev(self,obs_stdev):
-        """
-        Set the standard deviation on the uncertainty of the observable.
+        Standard deviation on the uncertainty of the heat.
         """
 
-        self._obs_stdev[:] = obs_stdev[:]
+        return self._heats_stdev[self._shot_start:]
+
+    @heats_stdev.setter
+    def heats_stdev(self,heats_stdev):
+        """
+        Set the standard deviation on the uncertainty of the heat.
+        """
+
+        self._heats_stdev[self._shot_start:] = heats_stdev[:]
 
     @property
     def mol_injected(self):
@@ -205,7 +205,7 @@ class PytcExperiment:
 
         # uL * mol/L * L/1e6 uL -> mol
         return self._shots[self._shot_start:]*self.titrant_syringe_conc*1e-6
-
+ 
     @property
     def mole_ratio(self):
         """
@@ -254,3 +254,4 @@ class PytcExperiment:
         """
 
         return self._R
+

@@ -2,7 +2,7 @@ __description__ = \
 """
 global_fit.py
 
-Classes for doing nonlinear regression of global models against multiple ITC
+Classes for doing nonlinear regression of global models against multiple pytc
 experiments.
 """
 __author__ = "Michael J. Harms"
@@ -30,7 +30,7 @@ class FitNotRunError(Exception):
 
 class GlobalFit:
     """
-    Class for regressing models against an arbitrary number of ITC experiments.
+    Class for regressing models against an arbitrary number of experiments.
     """
 
     def __init__(self):
@@ -43,7 +43,7 @@ class GlobalFit:
         self._global_params = {}
         self._global_param_mapping = {}
 
-        # List of experiments 
+        # List of experiments
         self._expt_dict = {}
         self._expt_list_stable_order = []
 
@@ -54,7 +54,7 @@ class GlobalFit:
         Parameters
         ----------
 
-        experiment: an ITCExperiment instance
+        experiment: an PytcExperiment instance
         """
 
         name = experiment.experiment_id
@@ -73,8 +73,8 @@ class GlobalFit:
 
         Parameters
         ----------
-        
-        experiment: an ITCExperiment instance
+
+        experiment: an PytcExperiment instance
         """
 
         expt_name = experiment.experiment_id
@@ -105,7 +105,7 @@ class GlobalFit:
         Parameters
         ----------
 
-        expt : an ITCExperiment instance
+        expt : an PytcExperiment instance
         expt_param : string
             key pointing to experimental parameter
         global_param_name : string OR global_connector method
@@ -166,7 +166,7 @@ class GlobalFit:
         Parameters
         ----------
 
-        expt : ITCExperiment instance
+        expt : PytcExperiment instance
         expt_param : string
             experimental parameter to unlink from global
         """
@@ -223,23 +223,23 @@ class GlobalFit:
 
     def fit(self,fitter=fitters.MLFitter):
         """
-        Public function that performs the fit. 
-        
+        Public function that performs the fit.
+
         Parameters
         ----------
 
         fitter : subclass of fitters.Fitter
-            Fitter specifies how the fit should be done.  It defaults to a 
+            Fitter specifies how the fit should be done.  It defaults to a
             maximum-likelihood method.  If the subclass is passed, it is
-            initialized with default parameters.  If an instance of the 
-            subclass is passed, it will be used as-is. 
+            initialized with default parameters.  If an instance of the
+            subclass is passed, it will be used as-is.
         """
 
         # Prep the fit (creating arrays that properly map between the the
         # Mapper instance and numpy arrays for regression).
         self._prep_fit()
-       
-        # If the fitter is not intialized, initialize it 
+
+        # If the fitter is not intialized, initialize it
         if inspect.isclass(fitter):
             self._fitter = fitter()
         else:
@@ -274,14 +274,14 @@ class GlobalFit:
 
         # Go through global variables
         for k in self._global_param_mapping.keys():
-    
+
             # Otherwise, there is just one parameter to enumerate over.
             if type(k) == str:
                 enumerate_over = {k:self._global_params[k]}
                 param_type = 1
- 
+
             # If this is a global connector, enumerate over all parameters in
-            # that connector 
+            # that connector
             elif issubclass(k.__self__.__class__,GlobalConnector):
 
                 if k.__self__ in self._flat_global_connectors_seen:
@@ -294,16 +294,16 @@ class GlobalFit:
             else:
                 err = "global variable class not recongized.\n"
                 raise ValueError(err)
-            
-            # Now update parameter values, bounds, and mapping 
-            for e in enumerate_over.keys(): 
+
+            # Now update parameter values, bounds, and mapping
+            for e in enumerate_over.keys():
 
                 # write fixed parameter values to the appropriate experiment,
                 # then skip
                 if enumerate_over[e].fixed:
                     fixed_value = enumerate_over[e].value
                     for expt, expt_param in self._global_param_mapping[k]:
-                        self._expt_dict[expt].model.update_fixed({expt_param:fixed_value}) 
+                        self._expt_dict[expt].model.update_fixed({expt_param:fixed_value})
                     continue
 
                 self._flat_param.append(enumerate_over[e].guess)
@@ -318,9 +318,9 @@ class GlobalFit:
         # Go through every experiment
         units = None
         y_obs = []
-        for k in self._expt_dict.keys():                                       
+        for k in self._expt_dict.keys():
 
-            e = self._expt_dict[k]                                             
+            e = self._expt_dict[k]
 
             # Sanity check: does every experiment have the same units?
             if units is None:
@@ -358,7 +358,7 @@ class GlobalFit:
         # Create observed y and y err arrays for the likelihood function
         y_obs = []
         y_err = []
-        for k in self._expt_dict.keys():                                       
+        for k in self._expt_dict.keys():
             y_obs.extend(self._expt_dict[k].heats)
             y_err.extend(self._expt_dict[k].heats_stdev)
 
@@ -369,7 +369,7 @@ class GlobalFit:
         """
         Calculate heats using the model given parameters.
         """
-        
+
         # Update parameters
         for i in range(len(param)):
 
@@ -377,13 +377,13 @@ class GlobalFit:
             if self._flat_param_type[i] == 0:
                 experiment = self._flat_param_mapping[i][0]
                 parameter_name = self._flat_param_mapping[i][1]
-                self._expt_dict[experiment].model.update_values({parameter_name:param[i]})    
+                self._expt_dict[experiment].model.update_values({parameter_name:param[i]})
 
             # Vanilla global variable
             elif self._flat_param_type[i] == 1:
                 param_key = self._flat_param_mapping[i][0]
                 for experiment, parameter_name in self._global_param_mapping[param_key]:
-                    self._expt_dict[experiment].model.update_values({parameter_name:param[i]}) 
+                    self._expt_dict[experiment].model.update_values({parameter_name:param[i]})
 
             # Global connector global variable
             elif self._flat_param_type[i] == 2:
@@ -393,10 +393,10 @@ class GlobalFit:
 
             else:
                 err = "Paramter type {} not recongized.\n".format(self._flat_param_type[i])
-                raise ValueError(err) 
+                raise ValueError(err)
 
         # Look for connector functions
-        for connector_function in self._global_param_keys:            
+        for connector_function in self._global_param_keys:
 
             if type(connector_function) == str:
                 continue
@@ -405,14 +405,14 @@ class GlobalFit:
             if issubclass(connector_function.__self__.__class__,GlobalConnector):
 
                 # Update experiments with the value spit out by the connector function
-                for expt, param in self._global_param_mapping[connector_function]: 
-                    e = self._expt_dict[expt]                                                 
+                for expt, param in self._global_param_mapping[connector_function]:
+                    e = self._expt_dict[expt]
                     value = connector_function(e)
-                    self._expt_dict[expt].model.update_values({param:value})                  
-        
-        # Calculate using the model         
+                    self._expt_dict[expt].model.update_values({param:value})
+
+        # Calculate using the model
         y_calc = []
-        for k in self._expt_dict.keys(): 
+        for k in self._expt_dict.keys():
             y_calc.extend(self._expt_dict[k].dQ)
 
         return np.array(y_calc)
@@ -424,7 +424,7 @@ class GlobalFit:
 
         # Store the result
         for i in range(len(self._fitter.estimate)):
-                
+
             # local variable
             if self._flat_param_type[i] == 0:
 
@@ -451,8 +451,8 @@ class GlobalFit:
                 param_name = self._flat_param_mapping[i][1]
 
                 # HACK: if you use the params[param_name].value setter function,
-                # it will break the connector.  This is because I expose the 
-                # thermodynamic-y stuff of interest via .__dict__ rather than 
+                # it will break the connector.  This is because I expose the
+                # thermodynamic-y stuff of interest via .__dict__ rather than
                 # directly via params.  So, this has to use the .update_values
                 # method.
                 connector.update_values({param_name:self._fitter.estimate[i]})
@@ -461,7 +461,7 @@ class GlobalFit:
 
             else:
                 err = "Paramter type {} not recognized.\n".format(self._flat_param_type[i])
-                raise ValueError(err) 
+                raise ValueError(err)
 
     def delete_current_fit(self):
         """
@@ -495,19 +495,19 @@ class GlobalFit:
             symbol to use to plot data
         linewidth : float
             width of line for fits
-        num_samples : int 
+        num_samples : int
             number of samples to draw when drawing fits like Bayesian fits with
-            multiple fits. 
+            multiple fits.
 
         Returns matplotlib Figure and AxesSubplot instances that can be further
         manipulated by the user of the API.
         """
 
         # Make graph of appropraite size
-        fig = plt.figure(figsize=(5.5,6)) 
+        fig = plt.figure(figsize=(5.5,6))
 
         # Create two panel graph
-        gs = gridspec.GridSpec(2, 1, height_ratios=[4, 1]) 
+        gs = gridspec.GridSpec(2, 1, height_ratios=[4, 1])
         ax = []
         ax.append(fig.add_subplot(gs[0]))
         ax.append(fig.add_subplot(gs[1],sharex=ax[0]))
@@ -526,7 +526,7 @@ class GlobalFit:
 
         # Add labels to top plot and remove x-axis
         u = self._expt_dict[self._expt_list_stable_order[0]].units
-    
+
         if normalize_heat_to_shot:
             ax[0].set_ylabel("heat per mol titrant ({})".format(u))
         else:
@@ -603,12 +603,12 @@ class GlobalFit:
                 # Draw fit lines and residuals
                 if len(e.dQ) > 0:
                     ax[0].plot(mr,calc,color=color_list[j],linewidth=linewidth,alpha=alpha)
-                    ax[1].plot(mr,(calc-heats),data_symbol,color=color_list[j],alpha=alpha,markersize=8)     
+                    ax[1].plot(mr,(calc-heats),data_symbol,color=color_list[j],alpha=alpha,markersize=8)
 
                 # If this is the last sample, plot the experimental data
                 if i == len(these_samples) - 1:
                     ax[0].errorbar(mr,heats,e.heats_stdev,fmt=data_symbol,color=color_list[j],markersize=8)
-        
+
         fig.set_tight_layout(True)
 
         return fig, ax
@@ -623,14 +623,14 @@ class GlobalFit:
         param_names : list
             list of parameter names to include.  if None all parameter names
         """
-  
-        try: 
+
+        try:
             return self._fitter.corner_plot(filter_params)
         except AttributeError:
             # If the fit has not been done, return an empty plot
             dummy_fig = plt.figure(figsize=(5.5,6))
             return dummy_fig
- 
+
     # -------------------------------------------------------------------------
     # Properties describing fit results
 
@@ -648,16 +648,16 @@ class GlobalFit:
 
         u = self._expt_dict[self._expt_list_stable_order[0]].units
         out.append("# Units: {}\n".format(u))
-        
+
         fit_stats_keys = list(self.fit_stats.keys())
         fit_stats_keys.sort()
-        fit_stats_keys.remove("Fit type")  
- 
-        out.append("# {}: {}\n".format("Fit type",self.fit_stats["Fit type"])) 
+        fit_stats_keys.remove("Fit type")
+
+        out.append("# {}: {}\n".format("Fit type",self.fit_stats["Fit type"]))
         for k in fit_stats_keys:
             out.append("# {}: {}\n".format(k,self.fit_stats[k]))
 
-        out.append("type,name,exp_file,value,stdev,bot95,top95,fixed,guess,lower_bound,upper_bound\n") 
+        out.append("type,name,exp_file,value,stdev,bot95,top95,fixed,guess,lower_bound,upper_bound\n")
         for k in self.fit_param[0].keys():
 
             param_type = "global"
@@ -703,7 +703,7 @@ class GlobalFit:
 
                 fixed = self._expt_dict[expt_name].model.parameters[k].fixed
 
-                param_name = k 
+                param_name = k
                 value = self.fit_param[1][i][k]
                 stdev = self.fit_stdev[1][i][k]
                 ninetyfive = self.fit_ninetyfive[1][i][k]
@@ -725,7 +725,7 @@ class GlobalFit:
 
 
         return "".join(out)
- 
+
 
     @property
     def global_param(self):
@@ -747,7 +747,7 @@ class GlobalFit:
                         global_param[p] = g.__self__.params[p]
 
         return global_param
-                
+
 
     @property
     def fit_param(self):
@@ -850,13 +850,13 @@ class GlobalFit:
             return {}
 
         output = {}
-     
+
         output["num_obs"] = self.fit_num_obs
         output["num_param"] = self.fit_num_param
         output["df"] = self.fit_num_obs - self.fit_num_param
- 
-        # Create a vector of calcluated and observed values.  
-        y_obs = [] 
+
+        # Create a vector of calcluated and observed values.
+        y_obs = []
         y_estimate = []
         for k in self._expt_dict:
             y_obs.extend(self._expt_dict[k].heats)
@@ -866,13 +866,13 @@ class GlobalFit:
 
         P = self.fit_num_param
         N = self.fit_num_obs
- 
+
         sse = np.sum((y_obs -          y_estimate)**2)
         sst = np.sum((y_obs -      np.mean(y_obs))**2)
         ssm = np.sum((y_estimate - np.mean(y_obs))**2)
 
         output["Fit type"] = self._fitter.fit_type
-        
+
         fit_info = self._fitter.fit_info
         for x in fit_info.keys():
             output["  {}: {}".format(self._fitter.fit_type,x)] = fit_info[x]
@@ -887,7 +887,7 @@ class GlobalFit:
 
             output["Rsq"] = Rsq
             output["Rsq_adjusted"] = Rsq_adjusted
-        
+
         # calculate F-statistic
         msm = (1/P)*ssm
         mse = 1/(N - P - 1)*sse
@@ -897,7 +897,7 @@ class GlobalFit:
             output["F"] = msm/mse
 
         # Calcluate log-likelihood
-        lnL = self._fitter.ln_like(self._fitter.estimate) 
+        lnL = self._fitter.ln_like(self._fitter.estimate)
         output["ln(L)"] = lnL
 
         # AIC and BIC
@@ -1001,11 +1001,11 @@ class GlobalFit:
         Parameters
         ----------
 
-        param_name: string 
+        param_name: string
             name of parameter to set
         param_guess: float
             value to set parameter to
-        expt_name: ITCExperiment instance OR None
+        expt_name: PytcExperiment instance OR None
             experiment to update guess of
         """
 
@@ -1055,11 +1055,11 @@ class GlobalFit:
         Parameters
         ----------
 
-        param_name: string 
+        param_name: string
             name of parameter to set
         param_guess: float
             value to set parameter to
-        expt_name: ITCExperiment instance OR None
+        expt_name: PytcExperiment instance OR None
             experiment to update guess of
         """
 
@@ -1121,11 +1121,11 @@ class GlobalFit:
         Parameters
         ----------
 
-        param_name: string 
+        param_name: string
             name of parameter to set
         param_guess: float
             value to set parameter to
-        expt_name: ITCExperiment instance OR None
+        expt_name: PytcExperiment instance OR None
             experiment to update guess of
         """
 
@@ -1180,11 +1180,11 @@ class GlobalFit:
         Parameters
         ----------
 
-        param_name: string 
+        param_name: string
             name of parameter to set
         param_guess: float
             value to set parameter to
-        expt_name: ITCExperiment instance OR None
+        expt_name: PytcExperiment instance OR None
             experiment to update guess of
         """
 
@@ -1212,8 +1212,8 @@ class GlobalFit:
     def guess_to_value(self):
         """
         Set all parameter values back to their guesses.
-        """       
- 
+        """
+
         for p in self.global_param.keys():
             self.global_param[p].value = self.global_param[p].guess
 
@@ -1229,11 +1229,11 @@ class GlobalFit:
         Parameters
         ----------
 
-        param_name: string 
+        param_name: string
             name of parameter to set
         param_guess: float
             value to set parameter to
-        expt_name: ITCExperiment instance OR None
+        expt_name: PytcExperiment instance OR None
             experiment to update guess of
         """
 
@@ -1245,4 +1245,3 @@ class GlobalFit:
                 raise KeyError(err)
         else:
             self._expt_dict[expt.experiment_id].model.update_values({param_name:param_value})
-
