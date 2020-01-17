@@ -19,14 +19,14 @@ class BindingPolynomial(ITCModel):
     Base class for a binding polynomial fit.
     """
 
-    def param_definition(fx_competent=1.0): 
+    def param_definition(fx_competent=1.0):
         """
         Define fraction competent.  The binding polynomial parameters are built
         on the fly using the ._initialize_parameters below.
         """
-        
+
         pass
-    
+
     def __init__(self,
                  num_sites=1,
                  S_cell=100e-6,S_syringe=0.0,
@@ -47,15 +47,20 @@ class BindingPolynomial(ITCModel):
         self._num_sites = num_sites
         super().__init__(S_cell,S_syringe,T_cell,T_syringe,cell_volume,shot_volumes)
 
-    def _initialize_param(self):
+    def _initialize_param(self,param_names=None,param_guesses=None):
         """
         Populate the names of the arguments for this number of sites and guesses
         for each parameter in the model.
         """
 
+        if param_names == None:
+            param_names = []
+        if param_guesses == None:
+            param_guesses = []
+
         # Build polynomial parameters, depending on the number of sites in the model
-        param_names = ["beta{}".format(i) for i in range(1,self._num_sites + 1)]
-        param_guesses = [1e6 for i in range(self._num_sites)]
+        param_names.extend(["beta{}".format(i) for i in range(1,self._num_sites + 1)])
+        param_guesses.extend([1e6 for i in range(self._num_sites)])
         param_names.extend(["dH{}".format(i) for i in range(1,self._num_sites + 1)])
         param_guesses.extend([-4000.0 for i in range(self._num_sites)])
 
@@ -89,8 +94,8 @@ class BindingPolynomial(ITCModel):
 
         final_array = np.zeros((num_shots-1),dtype=float)
 
-        bp_ext.dQ(self._cell_volume, num_shots, size_T, self._num_sites, self.dilution_heats, 
-            self._fit_beta_array, self._fit_dH_array, S_conc_corr, self._T_conc, self._T_conc_free, 
+        bp_ext.dQ(self._cell_volume, num_shots, size_T, self._num_sites, self.dilution_heats,
+            self._fit_beta_array, self._fit_dH_array, S_conc_corr, self._T_conc, self._T_conc_free,
             final_array)
 
         return final_array
