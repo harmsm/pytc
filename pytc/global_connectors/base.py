@@ -11,23 +11,23 @@ from .. import fit_param
 
 class GlobalConnector:
     """
-    Describe simple, individual fitting parameters as an arbitrary collection 
+    Describe simple, individual fitting parameters as an arbitrary collection
     of other, underlying parameters that depend on experimental properties.
     """
 
-    param_guesses = {"":0.0}
+    param_guesses = {}
 
     def __init__(self,name):
         """
-        Initialize the class. 
+        Initialize the class.
 
         name: name of the fitter.  will be pre-pended to all parameter names.
         """
-    
+
         self._name = name
 
         self._param_names = list(self.param_guesses.keys())
-        
+
         methods = [m[0] for m in inspect.getmembers(self, predicate=inspect.ismethod)]
         for p in self._param_names:
             if p in methods:
@@ -43,7 +43,7 @@ class GlobalConnector:
         """
         Uses an "int_name" name without the name prefixed to the parameter.
         This is used by __dict__ so the person writing a new connector does not
-        use a prefix when referring to the parameter.  There is also an 
+        use a prefix when referring to the parameter.  There is also an
         "ext_name" name with the name of the class prefixed to the parameter.
         """
 
@@ -56,7 +56,7 @@ class GlobalConnector:
             for p in self._param_names:
                 self._int_to_ext_name[p] = p
                 self._ext_to_int_name[p] = p
-        else: 
+        else:
             self._int_to_ext_name = dict([(p,"{}_{}".format(self._name,p))
                                           for p in self._param_names])
             self._ext_to_int_name = dict([("{}_{}".format(self._name,p),p)
@@ -64,7 +64,7 @@ class GlobalConnector:
 
         self._param_dict = {}
         for int_name in self._param_names:
-            ext_name = self._int_to_ext_name[int_name] 
+            ext_name = self._int_to_ext_name[int_name]
             self._param_dict[ext_name] = fit_param.FitParameter(ext_name,
                                                                 guess=self.param_guesses[int_name])
             self.__dict__[int_name] = self._param_dict[ext_name].value
@@ -89,7 +89,7 @@ class GlobalConnector:
     @property
     def params(self):
         """
-        Return a dictionary of FitParameter instances.  Keys are ext_name 
+        Return a dictionary of FitParameter instances.  Keys are ext_name
         names.
         """
 
@@ -130,4 +130,4 @@ class GlobalConnector:
                 output["{}.{}".format(self.name,f[0])] = getattr(self,f[0])
 
 
-        return output 
+        return output

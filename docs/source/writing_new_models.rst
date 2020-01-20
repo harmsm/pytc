@@ -40,8 +40,9 @@ Here is a complete implementation of a
 
     class SingleSite(pytc.indiv_models.ITCModel):
 
-        def param_definition(K=1e6,dH=-4000.0,fx_competent=1.0):
-            pass
+        default_param_guesses = {"K":1e6,
+                                 "dH":-4000.0,
+                                 "fx_competent":1.0}
 
         @property
         def dQ(self):
@@ -63,18 +64,18 @@ Here is a complete implementation of a
             return self._cell_volume*S_conc_corr[1:]*X + self.dilution_heats
 
 The new class does two things:
- + It defines a method called :code:`param_defintion` that defines the
-   fittable parameters and reasonable guesses for those parameters as arguments
-   to the method.
+ + It defines a dictionary called :code:`default_param_guesses` that defines the
+   fittable parameters as keys and reasonable guesses for those parameters as
+   values.
  + It defines a property called :code:`dQ` which spits out the heat change for
    for each shot. It access the parameters defined in :code:`param_definition`
    using :code:`self.param_values[PARAMETER_NAME]`.
 
 The requirements for an individual model are:
  + It is a subclass of :code:`pytc.indiv_models.ITCModel`
- + It defines a :code:`param_definition` method with all fittable parameters as
-   arguments.  Each paramter should have a default value that is a reasonable
-   guess for that parameter.
+ + It defines a :code:`default_param_guesses` dictionary with all fittable
+   parameters.  Each key is a parameter name, each value is a reasonable guesse
+   for that parameter.
  + Expose a :code:`dQ` property that gives the heat change per shot.
 
 More complex models might require a few additional pieces of code:

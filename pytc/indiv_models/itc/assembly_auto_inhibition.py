@@ -34,7 +34,6 @@ class AssemblyAutoInhibition(ITCModel):
 
     """
 
-
     default_param_guesses = {"Klig1":1e7,
                              "Klig2":1e5,
                              "Kolig":1e6,
