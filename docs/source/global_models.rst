@@ -45,7 +45,7 @@ The new global parameters are simply assigned a name (:code:`global_K` and
 rest. The output of this fit will look something like the following.  The
 global parameters appear as :code:`global_K` and :code:`global_dH`.
 
-|   type,name,dh_file,value,uncertainty,fixed,guess,lower_bound,upper_bound
+|   type,name,data_file,value,uncertainty,fixed,guess,lower_bound,upper_bound
 |   global,global_K,NA,3.84168e+07,1.40582e-06,float,1.00000e+06,-inf,inf
 |   global,global_dH,NA,-4.64104e+03,7.96280e-03,float,-4.00000e+03,-inf,inf
 |   ...
@@ -169,7 +169,7 @@ linking is highlighted with :code:`***`
 
 This will spit out:
 
-|   type,name,dh_file,value,uncertainty,fixed,guess,lower_bound,upper_bound
+|   type,name,data_file,value,uncertainty,fixed,guess,lower_bound,upper_bound
 |   global,np_num_H,NA,-9.79065e-01,1.15256e+00,float,1.00000e-01,-inf,inf
 |   global,np_dH_intrinsic,NA,-4.63537e+02,1.08227e-02,float,0.00000e+00,-inf,inf
 |   ...

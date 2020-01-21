@@ -15,8 +15,10 @@ Units:
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
-import random, string, os
 import numpy as np
+
+import random, string, os, re
+
 
 class PytcExperiment:
     """
@@ -28,8 +30,11 @@ class PytcExperiment:
                    "J/mol":8.3144598,
                    "kJ/mol":0.0083144598}
 
-    def __init__(self,data_file,model,units="cal/mol",
-                 uncertainty=0.1,**model_kwargs):
+    def __init__(self,
+                 data_file,
+                 model,units="cal/mol",
+                 uncertainty=0.1,
+                 **model_kwargs):
         """
 
         Parameters
@@ -39,22 +44,19 @@ class PytcExperiment:
             file containing experimental results
         model: PytcModel subclass instance
             PytcModel subclass to use for modeling
-        shot_start: int
-            what shot to use as the first real point.  Shots start at 0, so
-            default=1 discards first point.
         units : string
             file units ("cal/mol","kcal/mol","J/mol","kJ/mol")
         uncertainty : float > 0.0
             uncertainty in integrated heats (set to same for all shots, unless
-            specified in something like NITPIC output file).
+            specified in the data file).
 
         **model_kwargs: any keyword arguments to pass to the model.  Any
                         keywords passed here will override whatever is
-                        stored in the dh_file.
+                        stored in the data_file.
         """
 
-        self.dh_file = dh_file
-        self._shot_start = shot_start
+        # record the data file to load and fit against
+        self.data_file = data_file
 
         # Deal with units
         self._units = units
@@ -73,50 +75,87 @@ class PytcExperiment:
         if self._uncertainty == 0.0:
             self._uncertainty = 1e-12
 
-        # Load in heats
-        extension = self.dh_file.split(".")[-1]
-        self._read_heats_file()
-
-        # Initialize model using information read from heats file
-        self._model = model(S_cell=self.stationary_cell_conc,
-                            T_syringe=self.titrant_syringe_conc,
-                            cell_volume=self.cell_volume,
-                            shot_volumes=self._shots,**model_kwargs)
-
+        # Create unique id for this experiment
         r = "".join([random.choice(string.ascii_letters) for i in range(20)])
-        self._experiment_id = "{}_{}".format(self.dh_file,r)
+        self._experiment_id = "{}_{}".format(self.data_file,r)
 
+        # Read file and initialize model. (These can be re-defined in
+        # subclasses)
+        self._read_file(data_file)
+        self._initialize_model(model_kwargs)
 
-    def _read_heats_file(self):
-        """
-        Dummy heat reading file.
-        """
+    def _read_file(self):
 
+        self._read_df(self.data_file)
+
+    def _initalize_model(self,**model_kwargs):
         pass
 
-    @property
-    def dQ(self):
+    def _read_df(self,df):
         """
-        Return heats calculated by the model with parameters defined in params
-        dictionary.
-        """
-
-        if len(self._model.dQ) == 0:
-            return np.array(())
-
-        return self._model.dQ[self._shot_start:]
-
-    @property
-    def dilution_heats(self):
-        """
-        Return dilution heats calculated by the model with parameters defined
-        in params dictionary.
+        Read a pandas data frame, sticking column names in as attributes to the
+        class.
         """
 
-        if len(self._model.dilution_heats) == 0:
-            return np.array(())
+        # Load in data frame
+        if type(df) is not pd.DataFrame:
+            if type(df) is str:
+                if os.path.isfile(df):
+                    if df[-4:].lower() == ".csv":
+                        df = pd.read_csv(df)
+                    elif df[-4:].lower in ["xlsx",".xls"]:
+                        df = pd.read_excel(df)
+                    else:
+                        err = "file type for {} not recognized\n".format(df)
+                        raise ValueError(err)
+                else:
+                    err = "file {} not found.\n".format(df)
+                    raise FileNotFoundError(err)
+            else:
+                err = "df should either be a dataframe or string pointing to a file\n"
+                raise ValueError(err)
 
-        return self._model.dilution_heats[self._shot_start:]
+        # ---------------------------
+        # Sanitize data frame columns
+        # ---------------------------
+
+        # Stuff we're going to want to remove
+        p = re.compile("[: .]")
+
+        # Go through each columns
+        new_columns = []
+        times_column_seen = {}
+        for c in self._df.columns:
+
+            # Split on stuff to remove
+            splits = [s for s in p.split(c) if s != ""]
+            new_column = "_".join(splits)
+
+            # If we ended up creating a newly duplicated column, append a
+            # number to it.,
+            try:
+                times_column_seen[new_column] += 1
+                new_column = "{}_{}".format(new_column,times_column_seen[new_column]-1)
+            except KeyError:
+                times_column_seen[new_column] = 1
+
+            new_columns.append(new_column)
+
+        # Rename columns
+        df.columns = new_columns
+
+        # Grab the data frame
+        self._df = df.copy()
+
+        # Make columns accessible as attributes to the class
+        for k in self._df.columns:
+            try:
+                self.__dict__[k]
+                err = "input data frame uses a reserved name ({})]\n".format(k)
+                raise ValueError(err)
+            except KeyError:
+                self.__dict__[k] = self._df[k]
+
 
     @property
     def param_values(self):
@@ -151,75 +190,20 @@ class PytcExperiment:
         return self._model
 
     @property
-    def shot_start(self):
-        """
-        Starting shot to use.
-        """
-
-        return self._shot_start
-
-    @shot_start.setter
-    def shot_start(self,value):
-        """
-        Change starting shot.
-        """
-
-        self._shot_start = value
-
-    @property
-    def obs(self):
-        """
-        Return experimental observable.
-        """
-        return self._obs[:]
-
-    @heats.setter
-    def obs(self,obs):
-        """
-        Set the obs.
-        """
-
-        self._obs[:] = obs[:]
-
-    @property
-    def obs_stdev(self):
-        """
-        Standard deviation on the uncertainty of the observable.
-        """
-
-        return self._obs_stdev[:]
-
-    @obs_stdev.setter
-    def obs_stdev(self,obs_stdev):
-        """
-        Set the standard deviation on the uncertainty of the observable.
-        """
-
-        self._obs_stdev[:] = obs_stdev[:]
-
-    @property
-    def mol_injected(self):
-        """
-        Return the mols injected over shots.
-        """
-
-        # uL * mol/L * L/1e6 uL -> mol
-        return self._shots[self._shot_start:]*self.titrant_syringe_conc*1e-6
-
-    @property
-    def mole_ratio(self):
-        """
-        Return the mole ratio of titrant to stationary.
-        """
-        return self._model.mole_ratio[self._shot_start:]
-
-    @property
     def experiment_id(self):
         """
         Return a unique experimental id.
         """
 
         return self._experiment_id
+
+    @property
+    def R(self):
+        """
+        Experiment gas constant.
+        """
+
+        return self._R
 
     @property
     def units(self):
@@ -246,11 +230,3 @@ class PytcExperiment:
             err += "\n"
 
             raise ValueError(err)
-
-    @property
-    def R(self):
-        """
-        Experiment gas constant.
-        """
-
-        return self._R

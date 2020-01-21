@@ -14,17 +14,17 @@ import os
 class NitpicExperiment(BaseITCExperiment):
     """
     Read data files from NITPIC ITC package. Takes the X.sedphat folder output
-    by ITC as the dh_file.
+    by ITC as the data_file.
     """
 
-    def _read_heats_file(self):
+    def _read_file(self):
         """
         Read data files from NITPIC ITC package. Takes the X.sedphat folder output.
         """
 
         # Figure out what files to load in
         read_files = []
-        for path, subdirs, files in os.walk(self.dh_file):
+        for path, subdirs, files in os.walk(self.data_file):
             for name in files:
                 if name.endswith((".xp", ".nitpic",".error-dat")):
                     read_files.append(os.path.join(path, name))
@@ -57,8 +57,8 @@ class NitpicExperiment(BaseITCExperiment):
             shots.append(float(col[1]))
             ndh.append(float(col[5]))
 
-        self._shots = np.array(shots)
-        self._heats = np.array(heats)
+        _shots = np.array(shots)
+        _heats = np.array(heats)
 
         # Read standard deviation on heat from the nitpic .error-dat file
         err_data = next(f for f in read_files if ".error-dat" in f)
@@ -71,4 +71,10 @@ class NitpicExperiment(BaseITCExperiment):
             sd = ndh[i] - float(l.split()[0])
             heats_stdev.append(sd*shots[i]/1000.0)
 
-        self._heats_stdev = np.array(heats_stdev)
+        _heats_stdev = np.array(heats_stdev)
+
+        df = pd.DataFrame("_shots":_shots,
+                          "_heats":_heats,
+                          "_heats_stdev":_heats_stdev)
+
+        self._read_df(df)

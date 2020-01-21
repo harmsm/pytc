@@ -661,7 +661,7 @@ class GlobalFit:
         for k in self.fit_param[0].keys():
 
             param_type = "global"
-            dh_file = "NA"
+            data_file = "NA"
 
             fixed = self.global_param[k].fixed
 
@@ -675,7 +675,7 @@ class GlobalFit:
 
             out.append("{:},{:},{:},{:.5e},{:.5e},{:.5e},{:.5e},{:},{:.5e},{:.5e},{:.5e}\n".format(param_type,
                                                                                                    param_name,
-                                                                                                   dh_file,
+                                                                                                   data_file,
                                                                                                    value,
                                                                                                    stdev,
                                                                                                    ninetyfive[0],
@@ -690,7 +690,7 @@ class GlobalFit:
             expt_name = self._expt_list_stable_order[i]
 
             param_type = "local"
-            dh_file = self._expt_dict[expt_name].dh_file
+            data_file = self._expt_dict[expt_name].data_file
 
             for k in self.fit_param[1][i].keys():
 
@@ -713,7 +713,7 @@ class GlobalFit:
 
                 out.append("{:},{:},{:},{:.5e},{:.5e},{:.5e},{:.5e},{:},{:.5e},{:.5e},{:.5e}\n".format(param_type,
                                                                                                        param_name,
-                                                                                                       dh_file,
+                                                                                                       data_file,
                                                                                                        value,
                                                                                                        stdev,
                                                                                                        ninetyfive[0],

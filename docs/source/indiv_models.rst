@@ -84,3 +84,19 @@ If a one sets the values of :math:`\alpha` to 1.0, :math:`D_{slope}` to 0.0, and
 :math:`D_{intercept}` to 0.0, and then does not allow them to vary during the
 fit, one recovers only the thermodynamic model---as is done in software such as
 Origin.
+
+
+Development
+===========
+
+`PytcModel` class covers all models.
+
+`species` submodule contains functions that model the concentrations of particular
+molecular species.  All functions should have followin form:
+    `species_conc(K1,K2,...,At,Bt,Ct,...,**kwargs)`
+
+where `K1`, `K2` etc. are the equilibrium constants describing the system, `At`,
+`Bt`, etc. are the total concentrations of various species, and `**kwargs` are
+keyword arguments controlling the calculation.
+
+`species_to_obs` submodule contains functions that map between 

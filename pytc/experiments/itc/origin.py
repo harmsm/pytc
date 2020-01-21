@@ -13,13 +13,13 @@ class OriginExperiment(BaseITCExperiment):
     Class that holds an ITC experiment integrated using Origin.
     """
 
-    def _read_heats_file(self):
+    def _read_file(self):
         """
         Read the heats file written out by the MicroCal/Origin ITC analysis
         package.
         """
 
-        f = open(self.dh_file,'r')
+        f = open(self.data_file,'r')
         lines = f.readlines()
         f.close()
 
@@ -37,11 +37,16 @@ class OriginExperiment(BaseITCExperiment):
             shots.append(float(col[0]))
             heats.append(float(col[1]))
 
-        self._shots = np.array(shots)
-        self._heats = np.array(heats)
-      
-        # Because there is no heat error in this file, assign the heat error
-        # specified by the user. 
-        self._heats_stdev = np.array([self._uncertainty
-                                      for i in range(len(self._heats))]) 
+        _shots = np.array(shots)
+        _heats = np.array(heats)
 
+        # Because there is no heat error in this file, assign the heat error
+        # specified by the user.
+        _heats_stdev = np.array([self._uncertainty
+                                 for i in range(len(self._heats))])
+
+        df = pd.DataFrame("_shots":_shots,
+                          "_heats":_heats,
+                          "_heats_stdev":_heats_stdev)
+
+        self._read_df(df)
