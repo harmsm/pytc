@@ -7,6 +7,7 @@ __date__ = "2016-06-22"
 
 from .base import BaseITCExperiment
 import numpy as np
+import pandas as pd
 
 class OriginExperiment(BaseITCExperiment):
     """
@@ -42,11 +43,10 @@ class OriginExperiment(BaseITCExperiment):
 
         # Because there is no heat error in this file, assign the heat error
         # specified by the user.
-        _heats_stdev = np.array([self._uncertainty
-                                 for i in range(len(self._heats))])
+        _heats_stdev = np.array([self._uncertainty for i in range(len(_heats))])
 
-        df = pd.DataFrame("_shots":_shots,
-                          "_heats":_heats,
-                          "_heats_stdev":_heats_stdev)
+        df = pd.DataFrame({"_shots":_shots,
+                           "_heats":_heats,
+                           "_heats_stdev":_heats_stdev})
 
         self._read_df(df)

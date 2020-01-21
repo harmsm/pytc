@@ -59,18 +59,18 @@ class BaseITCExperiment(PytcExperiment):
         # ITC specific information
         self._shot_start = shot_start
 
-        # Load in heats
-        df = self._read_file()
+        # Run parent init
+        super().__init__(data_file,model,units,uncertainty,**model_kwargs)
 
 
-    def _initialize_model(self,model_kwargs):
+    def _initialize_model(self,**model_kwargs):
 
         # Initialize model using information read from heats file
-        self._model = model(S_cell=self.stationary_cell_conc,
-                            T_syringe=self.titrant_syringe_conc,
-                            cell_volume=self.cell_volume,
-                            shot_volumes=self._shots,
-                            **model_kwargs)
+        self._model = self._model_function(S_cell=self.stationary_cell_conc,
+                                           T_syringe=self.titrant_syringe_conc,
+                                           cell_volume=self.cell_volume,
+                                           shot_volumes=self._shots,
+                                           **model_kwargs)
 
     @property
     def dQ(self):

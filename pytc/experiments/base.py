@@ -16,6 +16,7 @@ __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
 import numpy as np
+import pandas as pd
 
 import random, string, os, re
 
@@ -32,7 +33,8 @@ class PytcExperiment:
 
     def __init__(self,
                  data_file,
-                 model,units="cal/mol",
+                 model,
+                 units="cal/mol",
                  uncertainty=0.1,
                  **model_kwargs):
         """
@@ -58,6 +60,9 @@ class PytcExperiment:
         # record the data file to load and fit against
         self.data_file = data_file
 
+        # model function (will be initialized later)
+        self._model_function = model
+
         # Deal with units
         self._units = units
         try:
@@ -81,8 +86,8 @@ class PytcExperiment:
 
         # Read file and initialize model. (These can be re-defined in
         # subclasses)
-        self._read_file(data_file)
-        self._initialize_model(model_kwargs)
+        self._read_file()
+        self._initialize_model(**model_kwargs)
 
     def _read_file(self):
 
@@ -125,7 +130,7 @@ class PytcExperiment:
         # Go through each columns
         new_columns = []
         times_column_seen = {}
-        for c in self._df.columns:
+        for c in df.columns:
 
             # Split on stuff to remove
             splits = [s for s in p.split(c) if s != ""]

@@ -9,6 +9,7 @@ __date__ = "2017-05-15"
 
 from .base import BaseITCExperiment
 import numpy as np
+import pandas as pd
 import os
 
 class NitpicExperiment(BaseITCExperiment):
@@ -73,8 +74,8 @@ class NitpicExperiment(BaseITCExperiment):
 
         _heats_stdev = np.array(heats_stdev)
 
-        df = pd.DataFrame("_shots":_shots,
-                          "_heats":_heats,
-                          "_heats_stdev":_heats_stdev)
+        df = pd.DataFrame({"_shots":_shots,
+                           "_heats":_heats,
+                           "_heats_stdev":_heats_stdev})
 
         self._read_df(df)
