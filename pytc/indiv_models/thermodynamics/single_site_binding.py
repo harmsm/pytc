@@ -15,7 +15,7 @@ def species_conc(Kd,Pt,Xt):
     PX: ligand bound concentration
     """
 
-    b = Pt + Xt + Kd
+    b = Pt + Xt + 1/Kd
 
     PX = (b - np.sqrt((b)**2 - 4*Pt*Xt))/2
     P = Pt - PX
