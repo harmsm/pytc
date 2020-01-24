@@ -48,7 +48,7 @@ class ITCModel(PytcModel):
                                param_guesses=[0.0,0.0])
 
     @property
-    def dQ(self):
+    def predicted(self):
         return np.array(())
 
     # --------------------------------------------------------------------------

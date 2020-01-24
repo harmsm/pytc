@@ -1,7 +1,5 @@
 __description__ = \
 """
-experiments.py
-
 Classes for loading experimental data and associating those data with a
 model.
 
@@ -13,13 +11,12 @@ Units:
     PytcExperiment class.  It must be a in the AVAIL_UNITS dictionary.
 """
 __author__ = "Michael J. Harms"
-__date__ = "2016-06-22"
+__date__ = "2020-01-20"
 
 import numpy as np
 import pandas as pd
 
 import random, string, os, re
-
 
 class PytcExperiment:
     """
@@ -44,7 +41,7 @@ class PytcExperiment:
 
         data_file: string
             file containing experimental results
-        model: PytcModel subclass instance
+        model: PytcModel subclass
             PytcModel subclass to use for modeling
         units : string
             file units ("cal/mol","kcal/mol","J/mol","kJ/mol")
@@ -61,7 +58,7 @@ class PytcExperiment:
         self.data_file = data_file
 
         # model function (will be initialized later)
-        self._model_function = model
+        self._model_class = model
 
         # Deal with units
         self._units = units
@@ -90,11 +87,18 @@ class PytcExperiment:
         self._initialize_model(**model_kwargs)
 
     def _read_file(self):
+        """
+        Read the data file.
+        """
 
         self._read_df(self.data_file)
 
-    def _initalize_model(self,**model_kwargs):
-        pass
+    def _initialize_model(self,**model_kwargs):
+        """
+        Initialize the model describing the experiment.
+        """
+
+        self._model_class(**model_kwargs)
 
     def _read_df(self,df):
         """
@@ -161,6 +165,12 @@ class PytcExperiment:
             except KeyError:
                 self.__dict__[k] = self._df[k]
 
+    @property
+    def obs(self):
+        """
+        """
+
+        return np.array([])
 
     @property
     def param_values(self):

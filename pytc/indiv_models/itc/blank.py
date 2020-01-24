@@ -21,7 +21,7 @@ class Blank(ITCModel):
     default_param_guesses = {}
 
     @property
-    def dQ(self):
+    def predicted(self):
         """
         Calculate heat of dilution as a function of titrant concentration in
         the cell.

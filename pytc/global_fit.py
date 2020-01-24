@@ -359,15 +359,15 @@ class GlobalFit:
         y_obs = []
         y_err = []
         for k in self._expt_dict.keys():
-            y_obs.extend(self._expt_dict[k].heats)
-            y_err.extend(self._expt_dict[k].heats_stdev)
+            y_obs.extend(self._expt_dict[k].obs)
+            y_err.extend(self._expt_dict[k].obs_stdev)
 
         self._y_obs = np.array(y_obs)
         self._y_err = np.array(y_err)
 
     def _y_calc(self,param=None):
         """
-        Calculate heats using the model given parameters.
+        Calculate observable using the model given parameters.
         """
 
         # Update parameters
@@ -413,7 +413,7 @@ class GlobalFit:
         # Calculate using the model
         y_calc = []
         for k in self._expt_dict.keys():
-            y_calc.extend(self._expt_dict[k].dQ)
+            y_calc.extend(self._expt_dict[k].predicted)
 
         return np.array(y_calc)
 
@@ -579,8 +579,8 @@ class GlobalFit:
                 # Extract fit info for this experiment
                 e = self._expt_dict[expt_name]
                 mr = e.mole_ratio
-                heats = e.heats
-                calc = self._expt_dict[expt_name].dQ
+                obs = e.obs
+                calc = self._expt_dict[expt_name].predicted
 
                 if len(calc) > 0:
 
@@ -593,21 +593,21 @@ class GlobalFit:
 
                     # Subtract dilution is requested
                     if subtract_dilution:
-                        heats = heats - e.dilution_heats
+                        obs = obs - e.dilution_heats
                         calc = calc - e.dilution_heats
 
                     if normalize_heat_to_shot:
-                        heats = heats/e.mol_injected
+                        obs = obs/e.mol_injected
                         calc = calc/e.mol_injected
 
                 # Draw fit lines and residuals
-                if len(e.dQ) > 0:
+                if len(e.predicted) > 0:
                     ax[0].plot(mr,calc,color=color_list[j],linewidth=linewidth,alpha=alpha)
-                    ax[1].plot(mr,(calc-heats),data_symbol,color=color_list[j],alpha=alpha,markersize=8)
+                    ax[1].plot(mr,(calc-obs),data_symbol,color=color_list[j],alpha=alpha,markersize=8)
 
                 # If this is the last sample, plot the experimental data
                 if i == len(these_samples) - 1:
-                    ax[0].errorbar(mr,heats,e.heats_stdev,fmt=data_symbol,color=color_list[j],markersize=8)
+                    ax[0].errorbar(mr,obs,e.obs_stdev,fmt=data_symbol,color=color_list[j],markersize=8)
 
         fig.set_tight_layout(True)
 
@@ -859,8 +859,8 @@ class GlobalFit:
         y_obs = []
         y_estimate = []
         for k in self._expt_dict:
-            y_obs.extend(self._expt_dict[k].heats)
-            y_estimate.extend(self._expt_dict[k].dQ)
+            y_obs.extend(self._expt_dict[k].obs)
+            y_estimate.extend(self._expt_dict[k].predicted)
         y_estimate= np.array(y_estimate)
         y_obs = np.array(y_obs)
 

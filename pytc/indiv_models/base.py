@@ -58,6 +58,13 @@ class PytcModel:
         self._param_names.sort()
 
 
+    @property
+    def predicted(self):
+        """
+        Predicted observations given model. 
+        """
+        return self._model.predicted
+
     # -------------------------------------------------------------------------
     # parameter names
 

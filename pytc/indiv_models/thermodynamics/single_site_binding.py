@@ -1,4 +1,5 @@
 
+import numpy as np
 
 def species_conc(Kd,Pt,Xt):
     """
@@ -11,7 +12,7 @@ def species_conc(Kd,Pt,Xt):
     Returns:
     P: free protein concentration
     X: free ligand concentration
-    PX: ligand bound concentration 
+    PX: ligand bound concentration
     """
 
     b = Pt + Xt + Kd

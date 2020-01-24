@@ -8,3 +8,5 @@ __date__ = "2020-01-16"
 __all__ = []
 
 from . import itc
+from . import thermodynamics
+from . import spectroscopic

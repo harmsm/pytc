@@ -21,7 +21,7 @@ class SingleSite(ITCModel):
                              "fx_competent":1.0}
 
     @property
-    def dQ(self):
+    def predicted(self):
         """
         Calculate the heats that would be observed across shots for a given set
         of enthalpies and binding constants for each reaction.

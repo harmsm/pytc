@@ -69,7 +69,7 @@ class BindingPolynomial(ITCModel):
         self._T_conc_free = np.zeros(len(self._S_conc),dtype=float)
 
     @property
-    def dQ(self):
+    def predicted(self):
         """
         Calculate the heats that would be observed across shots for a given set
         of enthalpies and binding constants for each reaction.  This will work

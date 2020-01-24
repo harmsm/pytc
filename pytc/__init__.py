@@ -14,7 +14,7 @@ from . import util
 
 # Load these defaults (which will be used for vast majority of experiments)
 # into the global namespace for convenience
-from .experiments import ITCExperiment
+from .experiments import ITCExperiment, SpectroscopicExperiment
 from .global_fit import GlobalFit
 from .global_connectors import GlobalConnector
 

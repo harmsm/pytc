@@ -45,7 +45,7 @@ Here is a complete implementation of a
                                  "fx_competent":1.0}
 
         @property
-        def dQ(self):
+        def predicted(self):
             """
             Calculate the heats that would be observed across shots for a given set
             of enthalpies and binding constants for each reaction.
@@ -67,16 +67,17 @@ The new class does two things:
  + It defines a dictionary called :code:`default_param_guesses` that defines the
    fittable parameters as keys and reasonable guesses for those parameters as
    values.
- + It defines a property called :code:`dQ` which spits out the heat change for
-   for each shot. It access the parameters defined in :code:`param_definition`
-   using :code:`self.param_values[PARAMETER_NAME]`.
+ + It defines a property called :code:`predicted` which spits out the heat
+   change calculated for each shot. It access the parameters defined in
+   :code:`param_definition` using :code:`self.param_values[PARAMETER_NAME]`.
 
 The requirements for an individual model are:
  + It is a subclass of :code:`pytc.indiv_models.ITCModel`
  + It defines a :code:`default_param_guesses` dictionary with all fittable
    parameters.  Each key is a parameter name, each value is a reasonable guesse
    for that parameter.
- + Expose a :code:`dQ` property that gives the heat change per shot.
+ + Expose a :code:`predicted` property that gives the heat change per shot
+   calculated by the model.
 
 More complex models might require a few additional pieces of code:
  + To pass information to the model that is not present in a .DH file,

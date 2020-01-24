@@ -1,7 +1,5 @@
 __description__ = \
 """
-experiments.py
-
 Classes for loading experimental ITC data and associating those data with a
 model.
 
@@ -66,23 +64,23 @@ class BaseITCExperiment(PytcExperiment):
     def _initialize_model(self,**model_kwargs):
 
         # Initialize model using information read from heats file
-        self._model = self._model_function(S_cell=self.stationary_cell_conc,
-                                           T_syringe=self.titrant_syringe_conc,
-                                           cell_volume=self.cell_volume,
-                                           shot_volumes=self._shots,
-                                           **model_kwargs)
+        self._model = self._model_class(S_cell=self.stationary_cell_conc,
+                                        T_syringe=self.titrant_syringe_conc,
+                                        cell_volume=self.cell_volume,
+                                        shot_volumes=self._shots,
+                                        **model_kwargs)
 
     @property
-    def dQ(self):
+    def predicted(self):
         """
         Return heats calculated by the model with parameters defined in params
         dictionary.
         """
 
-        if len(self._model.dQ) == 0:
+        if len(self._model.predicted) == 0:
             return np.array(())
 
-        return self._model.dQ[self._shot_start:]
+        return self._model.predicted[self._shot_start:]
 
     @property
     def dilution_heats(self):
@@ -114,35 +112,35 @@ class BaseITCExperiment(PytcExperiment):
         self._shot_start = value
 
     @property
-    def heats(self):
+    def obs(self):
         """
         Return experimental heats.
         """
         return self._heats[self._shot_start:]
 
-    @heats.setter
-    def heats(self,heats):
+    @obs.setter
+    def obs(self,obs):
         """
         Set the heats.
         """
 
-        self._heats[self._shot_start:] = heats[:]
+        self._heats[self._shot_start:] = obs[:]
 
     @property
-    def heats_stdev(self):
+    def obs_stdev(self):
         """
         Standard deviation on the uncertainty of the heat.
         """
 
         return self._heats_stdev[self._shot_start:]
 
-    @heats_stdev.setter
-    def heats_stdev(self,heats_stdev):
+    @obs_stdev.setter
+    def obs_stdev(self,obs_stdev):
         """
         Set the standard deviation on the uncertainty of the heat.
         """
 
-        self._heats_stdev[self._shot_start:] = heats_stdev[:]
+        self._heats_stdev[self._shot_start:] = obs_stdev[:]
 
     @property
     def mol_injected(self):
