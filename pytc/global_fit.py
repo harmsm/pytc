@@ -14,8 +14,8 @@ from . global_connectors import GlobalConnector
 import numpy as np
 import scipy
 import scipy.optimize as optimize
+import pandas as pd
 from matplotlib import pyplot as plt
-from matplotlib import gridspec
 
 import copy, inspect, warnings, sys, datetime
 
@@ -475,7 +475,8 @@ class GlobalFit:
 
         self._prep_fit()
 
-    def plot(self,correct_molar_ratio=False,subtract_dilution=False,
+    def plot(self,fig=None,ax=None,
+             correct_molar_ratio=False,subtract_dilution=False,
              normalize_heat_to_shot=False,color_list=None,
              data_symbol="o",linewidth=1.5,num_samples=100):
         """
@@ -502,44 +503,6 @@ class GlobalFit:
         Returns matplotlib Figure and AxesSubplot instances that can be further
         manipulated by the user of the API.
         """
-
-        # Make graph of appropraite size
-        fig = plt.figure(figsize=(5.5,6))
-
-        # Create two panel graph
-        gs = gridspec.GridSpec(2, 1, height_ratios=[4, 1])
-        ax = []
-        ax.append(fig.add_subplot(gs[0]))
-        ax.append(fig.add_subplot(gs[1],sharex=ax[0]))
-
-        # Clean up graphs
-        for i in range(2):
-            ax[i].spines['top'].set_visible(False)
-            ax[i].spines['right'].set_visible(False)
-
-            ax[i].yaxis.set_ticks_position('left')
-            ax[i].xaxis.set_ticks_position('bottom')
-
-        # Nothing to plot
-        if len(self._expt_list_stable_order) < 1:
-            return fig, ax
-
-        # Add labels to top plot and remove x-axis
-        u = self._expt_dict[self._expt_list_stable_order[0]].units
-
-        if normalize_heat_to_shot:
-            ax[0].set_ylabel("heat per mol titrant ({})".format(u))
-        else:
-            new_u = u.split("/")[0]
-            ax[0].set_ylabel("observed heat ({})".format(new_u))
-
-        plt.setp(ax[0].get_xticklabels(), visible=False)
-
-        # Add labels to the residuals plot
-        m = self._expt_dict[self._expt_list_stable_order[0]].mole_ratio
-        ax[1].plot([np.min(m),np.max(m)],[0,0],"--",linewidth=1.0,color="gray")
-        ax[1].set_xlabel("molar ratio (titrant/stationary)")
-        ax[1].set_ylabel("residual")
 
         # Make list of colors
         if color_list == None:
@@ -568,8 +531,14 @@ class GlobalFit:
         if len(these_samples) == 1:
             alpha = 1.0
         else:
-            alpha = 0.1
+            alpha = 1/len(these_samples)
+            if alpha < 0.01:
+                alpha = 0.01
 
+        fig = None
+        ax = None
+
+        print(alpha)
         for i, s in enumerate(these_samples):
 
             # Update calculation for this sample
@@ -578,6 +547,10 @@ class GlobalFit:
 
                 # Extract fit info for this experiment
                 e = self._expt_dict[expt_name]
+                fig, ax = e.plot(fig,ax,
+                                 color=color_list[j],alpha=alpha,
+                                 draw_fit=True,draw_expt=False)
+
                 mr = e.mole_ratio
                 obs = e.obs
                 calc = self._expt_dict[expt_name].predicted
@@ -607,11 +580,14 @@ class GlobalFit:
 
                 # If this is the last sample, plot the experimental data
                 if i == len(these_samples) - 1:
-                    ax[0].errorbar(mr,obs,e.obs_stdev,fmt=data_symbol,color=color_list[j],markersize=8)
+                    fig, ax = e.plot(fig,ax,
+                                     color=color_list[j],
+                                     draw_fit=False,draw_expt=True)
 
         fig.set_tight_layout(True)
 
         return fig, ax
+
 
     def corner_plot(self,filter_params=("competent","dilution","intercept","heat")):
         """
@@ -635,65 +611,90 @@ class GlobalFit:
     # Properties describing fit results
 
     @property
+    def fit_summary(self):
+        """
+        Return dictionary holding summary of fit parameters and statistics.
+        """
+
+        if len(self._expt_list_stable_order) < 1:
+            return {}
+
+        out = {}
+        out["success"] = self.fit_success
+        out["date"] = "{}".format(datetime.datetime.now())
+
+        u = self._expt_dict[self._expt_list_stable_order[0]].units
+        out["units"] = "{}".format(u)
+
+        out["fit_type"] = self.fit_stats["Fit type"]
+
+        fit_stats_keys = list(self.fit_stats.keys())
+        fit_stats_keys.sort()
+        fit_stats_keys.remove("Fit type")
+        for k in fit_stats_keys:
+            out[k] = self.fit_stats[k]
+
+        return out
+
+    @property
     def fit_as_csv(self):
         """
         Return a csv-style string of the fit.
         """
 
+        df = self.fit_as_df
+        if df is None:
+            return None
+        else:
+            return df.to_csv()
+
+    @property
+    def fit_as_df(self):
+        """
+        Return fit parameters as a dataframe.
+        """
+
         if len(self._expt_list_stable_order) < 1:
-            return "# No experiments loaded."
+            return None
 
-        out = ["# Fit successful? {}\n".format(self.fit_success)]
-        out.append("# {}\n".format(datetime.datetime.now()))
+        param_names = []
+        data_files = []
+        param_types = []
+        fixed = []
+        values = []
+        stdevs = []
+        bottom_ninetyfives = []
+        top_ninetyfives = []
+        guesses = []
+        lower_bounds = []
+        upper_bounds = []
 
-        u = self._expt_dict[self._expt_list_stable_order[0]].units
-        out.append("# Units: {}\n".format(u))
-
-        fit_stats_keys = list(self.fit_stats.keys())
-        fit_stats_keys.sort()
-        fit_stats_keys.remove("Fit type")
-
-        out.append("# {}: {}\n".format("Fit type",self.fit_stats["Fit type"]))
-        for k in fit_stats_keys:
-            out.append("# {}: {}\n".format(k,self.fit_stats[k]))
-
-        out.append("type,name,exp_file,value,stdev,bot95,top95,fixed,guess,lower_bound,upper_bound\n")
         for k in self.fit_param[0].keys():
 
-            param_type = "global"
-            data_file = "NA"
+            param_names.append(k)
+            param_types.append("global")
+            data_files.append(np.nan)
+            fixed.append(self.global_param[k].fixed)
+            values.append(self.fit_param[0][k])
+            stdevs.append(self.fit_stdev[0][k])
+            bottom_ninetyfives.append(self.fit_ninetyfive[0][k][0])
+            top_ninetyfives.append(self.fit_ninetyfive[0][k][1])
+            guesses.append(self.global_param[k].guess)
+            lower_bounds.append(self.global_param[k].bounds[0])
+            upper_bounds.append(self.global_param[k].bounds[1])
 
-            fixed = self.global_param[k].fixed
-
-            param_name = k
-            value = self.fit_param[0][k]
-            stdev = self.fit_stdev[0][k]
-            ninetyfive = self.fit_ninetyfive[0][k]
-            guess = self.global_param[k].guess
-            lower_bound = self.global_param[k].bounds[0]
-            upper_bound = self.global_param[k].bounds[1]
-
-            out.append("{:},{:},{:},{:.5e},{:.5e},{:.5e},{:.5e},{:},{:.5e},{:.5e},{:.5e}\n".format(param_type,
-                                                                                                   param_name,
-                                                                                                   data_file,
-                                                                                                   value,
-                                                                                                   stdev,
-                                                                                                   ninetyfive[0],
-                                                                                                   ninetyfive[1],
-                                                                                                   fixed,
-                                                                                                   guess,
-                                                                                                   lower_bound,
-                                                                                                   upper_bound))
 
         for i in range(len(self.fit_param[1])):
 
             expt_name = self._expt_list_stable_order[i]
-
             param_type = "local"
             data_file = self._expt_dict[expt_name].data_file
+            if type(data_file) is pd.DataFrame:
+                data_file = "df"
 
             for k in self.fit_param[1][i].keys():
 
+                # Skip variables that have another alias
                 try:
                     alias = self._expt_dict[expt_name].model.parameters[k].alias
                     if alias != None:
@@ -701,30 +702,33 @@ class GlobalFit:
                 except AttributeError:
                     pass
 
-                fixed = self._expt_dict[expt_name].model.parameters[k].fixed
+                param_names.append(k)
+                param_types.append("local")
+                data_files.append(data_file)
+                fixed.append(self._expt_dict[expt_name].model.parameters[k].fixed)
 
-                param_name = k
-                value = self.fit_param[1][i][k]
-                stdev = self.fit_stdev[1][i][k]
-                ninetyfive = self.fit_ninetyfive[1][i][k]
-                guess = self._expt_dict[expt_name].model.parameters[k].guess
-                lower_bound = self._expt_dict[expt_name].model.parameters[k].bounds[0]
-                upper_bound = self._expt_dict[expt_name].model.parameters[k].bounds[1]
-
-                out.append("{:},{:},{:},{:.5e},{:.5e},{:.5e},{:.5e},{:},{:.5e},{:.5e},{:.5e}\n".format(param_type,
-                                                                                                       param_name,
-                                                                                                       data_file,
-                                                                                                       value,
-                                                                                                       stdev,
-                                                                                                       ninetyfive[0],
-                                                                                                       ninetyfive[1],
-                                                                                                       fixed,
-                                                                                                       guess,
-                                                                                                       lower_bound,
-                                                                                                       upper_bound))
+                values.append(self.fit_param[1][i][k])
+                stdevs.append(self.fit_stdev[1][i][k])
+                bottom_ninetyfives.append(self.fit_ninetyfive[1][i][k][0])
+                top_ninetyfives.append(self.fit_ninetyfive[1][i][k][1])
+                guesses.append(self._expt_dict[expt_name].model.parameters[k].guess)
+                lower_bounds.append(self._expt_dict[expt_name].model.parameters[k].bounds[0])
+                upper_bounds.append(self._expt_dict[expt_name].model.parameters[k].bounds[1])
 
 
-        return "".join(out)
+        df = pd.DataFrame({"type":param_types,
+                           "name":param_names,
+                           "exp_file":data_files,
+                           "fixed":fixed,
+                           "value":values,
+                           "stdev":stdevs,
+                           "bot_95":bottom_ninetyfives,
+                           "top_95":top_ninetyfives,
+                           "guess":guesses,
+                           "lower_bound":lower_bounds,
+                           "upper_bound":upper_bounds})
+
+        return df
 
 
     @property
