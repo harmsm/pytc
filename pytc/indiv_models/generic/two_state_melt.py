@@ -8,6 +8,8 @@ __date__ = "2020-01-28"
 from .base import GenericModel
 from ..thermodynamics import two_state_melt
 
+import numpy as np
+
 class TwoStateMelt(GenericModel):
 
     default_param_guesses = {"Ku":1e6,

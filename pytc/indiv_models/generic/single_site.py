@@ -12,7 +12,7 @@ from ..thermodynamics import single_site_binding
 
 class SingleSite(GenericModel):
 
-    default_param_guesses = {"Kd":1e6,
+    default_param_guesses = {"Kd":1e-6,
                              "P_signal":0.0,
                              "X_signal":0.0,
                              "PX_signal":1.0}

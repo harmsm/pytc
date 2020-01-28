@@ -416,6 +416,12 @@ class GlobalFit:
         # Store the result
         for i in range(len(self._fitter.estimate)):
 
+            # If 95 estimate crashed, just report nan
+            if self._fitter.ninetyfive is None:
+                value95 = (np.nan,np.nan)
+            else:
+                value95 = self._fitter.ninetyfive[i]
+
             # local variable
             if self._flat_param_type[i] == 0:
 
@@ -424,7 +430,9 @@ class GlobalFit:
 
                 self._expt_dict[experiment].model.update_values({parameter_name:self._fitter.estimate[i]})
                 self._expt_dict[experiment].model.update_stdevs({parameter_name:self._fitter.stdev[i]})
-                self._expt_dict[experiment].model.update_ninetyfives({parameter_name:self._fitter.ninetyfive[i]})
+
+
+                self._expt_dict[experiment].model.update_ninetyfives({parameter_name:value95})
 
             # Vanilla global variable
             elif self._flat_param_type[i] == 1:
@@ -434,7 +442,7 @@ class GlobalFit:
                     self._expt_dict[k].model.update_values({p:self._fitter.estimate[i]})
                     self._global_params[param_key].value = self._fitter.estimate[i]
                     self._global_params[param_key].stdev = self._fitter.stdev[i]
-                    self._global_params[param_key].ninetyfive = self._fitter.ninetyfive[i]
+                    self._global_params[param_key].ninetyfive = value95
 
             # Global connector global variable
             elif self._flat_param_type[i] == 2:
@@ -448,7 +456,7 @@ class GlobalFit:
                 # method.
                 connector.update_values({param_name:self._fitter.estimate[i]})
                 connector.params[param_name].stdev = self._fitter.stdev[i]
-                connector.params[param_name].ninetyfive = self._fitter.ninetyfive[i]
+                connector.params[param_name].ninetyfive = value95
 
             else:
                 err = "Paramter type {} not recognized.\n".format(self._flat_param_type[i])

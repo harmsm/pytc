@@ -11,10 +11,11 @@ from . import experiments
 from . import indiv_models
 from . import global_connectors
 from . import util
+from . import plot
 
 # Load these defaults (which will be used for vast majority of experiments)
 # into the global namespace for convenience
-from .experiments import ITCExperiment, SpectroscopicExperiment
+from .experiments import ITCExperiment, GenericExperiment
 from .global_fit import GlobalFit
 from .global_connectors import GlobalConnector
 

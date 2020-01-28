@@ -24,7 +24,7 @@ class FitParameter:
                guess will be set to 1.0.
         guess_range: range of reasonable guesses (list-like object of 2 floats).
                      If None, class will guess intelligently based on parameter
-                     name.  
+                     name.
         fixed: whether or not the parameter is fixed (bool)
         bounds: bounds on fit for parameter (list-like object of 2 floats). If
                 None, bounds will be set to (None,None).  If (None,5), no lower
@@ -37,16 +37,16 @@ class FitParameter:
         self.guess = guess
         self.guess_range = guess_range
         self.fixed = fixed
-        self.bounds = bounds        
+        self.bounds = bounds
         self.alias = alias
-       
-        self._initialize_fit_results() 
+
+        self._initialize_fit_results()
 
     def _initialize_fit_results(self):
         """
         Set fit results to start (stdev, ninetyfive, value to guess).
         """
-    
+
         self.value = self.guess
         self._stdev = np.inf
         self._ninetyfive = [-np.inf,np.inf]
@@ -64,7 +64,7 @@ class FitParameter:
 
     @name.setter
     def name(self,n):
-        
+
         self._name = str(n)
 
     #--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ class FitParameter:
         If value is set to None, set value to self.guess value.
         """
 
-        if v != None:
+        if v is not None:
             self._value = v
         else:
             self._value = self.guess
@@ -147,10 +147,10 @@ class FitParameter:
     def guess(self,g):
         """
         Set the guess.  If None, choose intelligently based on the name of the
-        parameter. 
+        parameter.
         """
 
-        if g != None:
+        if g is not None:
             self._guess = g
         else:
             if self.name.startswith("dH"):
@@ -171,7 +171,7 @@ class FitParameter:
     @property
     def guess_range(self):
         """
-        Range of reasonable guesses for the parameter. 
+        Range of reasonable guesses for the parameter.
         """
 
         return self._guess_range
@@ -183,7 +183,7 @@ class FitParameter:
         based on parameter name.
         """
 
-        if g != None:
+        if g is not None:
             try:
                 if len(g) != 2:
                     raise TypeError
@@ -205,7 +205,7 @@ class FitParameter:
         self._initialize_fit_results()
 
     #--------------------------------------------------------------------------
-    # parameter fixed-ness. 
+    # parameter fixed-ness.
 
     @property
     def fixed(self):
@@ -220,7 +220,7 @@ class FitParameter:
         """
         Fix or unfix the parameter.
         """
-        
+
         self._fixed = bool(bool_value)
         self._initialize_fit_results()
 
@@ -238,19 +238,19 @@ class FitParameter:
     @bounds.setter
     def bounds(self,b):
         """
-        Set fit bounds. 
+        Set fit bounds.
         """
 
-        if b != None:
+        if b is not None:
             try:
                 if len(b) != 2:
                     raise TypeError
             except TypeError:
                 err = "Bounds must be list-like object of length 2\n"
                 raise ValueError(err)
-        
+
             self._bounds = tuple(copy.deepcopy(b))
-            
+
         else:
             self._bounds = (-np.inf,np.inf)
 
@@ -258,7 +258,7 @@ class FitParameter:
 
     #--------------------------------------------------------------------------
     # parameter alias
-   
+
     @property
     def alias(self):
         """
@@ -266,7 +266,7 @@ class FitParameter:
         """
 
         return self._alias
-    
+
     @alias.setter
     def alias(self,a):
         """
@@ -274,7 +274,7 @@ class FitParameter:
         """
 
         try:
-            if self._alias != None and self._alias != a and a != None:
+            if self._alias is not None and self._alias != a and a is not None:
                 err = "Could not set alias to {:} because it is already set to {:}".format(a,self._alias)
                 raise ValueError(err)
         except AttributeError:

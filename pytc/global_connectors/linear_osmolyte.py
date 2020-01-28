@@ -7,6 +7,7 @@ __author__ = "Michael J. Harms"
 __date__ = "2020-01-17"
 
 from . import GlobalConnector
+import numpy as np
 
 class LinearOsmolyte(GlobalConnector):
     """
@@ -15,7 +16,7 @@ class LinearOsmolyte(GlobalConnector):
     """
 
     param_guesses = {"m":0.0, "dG0":-5.0}
-    required_data = ["osm"]
+    required_data = ["osm","R","temperature"]
 
     def dG(self,experiment):
         """
@@ -25,14 +26,21 @@ class LinearOsmolyte(GlobalConnector):
 
         return self.dG0 + self.m*experiment.osm
 
-class LinearUrea(GlobalConnector):
+    def K(self,experiment):
+
+        dG = self.dG(experiment)
+
+        return np.exp(-dG/(experiment.R*experiment.temperature))
+
+
+class LinearUrea(LinearOsmolyte):
     """
     Returns the free energy for a reaction as a linear function of urea.
     Requires experiment instances have .urea attribute.
     """
 
     param_guesses = {"m":0.0, "dG0":-5.0}
-    required_data = ["urea"]
+    required_data = ["urea","R","temperature"]
 
     def dG(self,experiment):
         """
@@ -42,14 +50,14 @@ class LinearUrea(GlobalConnector):
 
         return self.dG0 + self.m*experiment.urea
 
-class LinearGdm(GlobalConnector):
+class LinearGdm(LinearOsmolyte):
     """
     Returns the free energy for a reaction as a linear function of gdm.
     Requires experiment instances have .gdm attribute.
     """
 
     param_guesses = {"m":0.0, "dG0":-5.0}
-    required_data = ["gdm"]
+    required_data = ["gdm","R","temperature"]
 
     def dG(self,experiment):
         """

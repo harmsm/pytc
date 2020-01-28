@@ -1,4 +1,9 @@
 
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+from matplotlib import gridspec
+
 
 def plot(global_fit,
          fig=None,ax=None,
@@ -34,26 +39,26 @@ def plot(global_fit,
 
     # Make list of colors
     if color_list is None:
-        N = len(self._expt_list_stable_order)
+        N = len(global_fit._expt_list_stable_order)
         color_list = [plt.cm.brg(i/N) for i in range(N)]
 
     # Sanity check on colors
-    if len(color_list) < len(self._expt_list_stable_order):
+    if len(color_list) < len(global_fit._expt_list_stable_order):
         err = "Number of specified colors is less than number of experiments.\n"
         raise ValueError(err)
 
     try:
         # If there are samples:
-        if len(self._fitter.samples) > 0:
-            s = self._fitter.samples
+        if len(global_fit.fitter.samples) > 0:
+            s = global_fit.fitter.samples
             these_samples = s[np.random.randint(len(s),size=num_samples)]
         else:
-            these_samples = [self._fitter.estimate]
+            these_samples = [global_fit.fitter.estimate]
     except AttributeError:
 
         # If fit has not been done, create dummy version
-        self._prep_fit()
-        these_samples = [np.array(self._flat_param)]
+        global_fit._prep_fit()
+        these_samples = [np.array(global_fit._flat_param)]
 
     # If there are multiple samples, assign them partial transparency
     if len(these_samples) == 1:
@@ -68,7 +73,7 @@ def plot(global_fit,
     map_expt_to_plot = []
     _map_type_to_plot = {}
     _plot_counter = 0
-    for j, expt_name in enumerate(self._expt_list_stable_order):
+    for j, expt_name in enumerate(global_fit._expt_list_stable_order):
 
         # If every experiment gets its own plot, do so
         if each_expt_own_plot:
@@ -78,7 +83,7 @@ def plot(global_fit,
 
         # Otherwise, group experiments of the same type together
         else:
-            expt_type = type(self._expt_dict[expt_name])
+            expt_type = type(global_fit._expt_dict[expt_name])
 
             # If we've already seen this experiment type, find the plot
             # we should use for this experiment
@@ -97,13 +102,13 @@ def plot(global_fit,
     for i, s in enumerate(these_samples):
 
         # Update calculation for this sample
-        self._y_calc(s)
-        for j, expt_name in enumerate(self._expt_list_stable_order):
+        global_fit._y_calc(s)
+        for j, expt_name in enumerate(global_fit._expt_list_stable_order):
 
             fig, ax = plots[map_expt_to_plot[j]]
 
             # Extract fit info for this experiment
-            e = self._expt_dict[expt_name]
+            e = global_fit._expt_dict[expt_name]
             fig, ax = e.plot(fig,ax,
                              color=color_list[j],alpha=alpha,
                              draw_fit=True,draw_expt=False)

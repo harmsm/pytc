@@ -3,6 +3,7 @@ from .base import PytcExperiment
 
 import numpy as np
 
+
 class GenericExperiment(PytcExperiment):
 
     def __init__(self,

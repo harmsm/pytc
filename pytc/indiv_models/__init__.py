@@ -9,4 +9,4 @@ __all__ = []
 
 from . import itc
 from . import thermodynamics
-from . import spectroscopic
+from . import generic
