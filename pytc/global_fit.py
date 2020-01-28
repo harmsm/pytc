@@ -15,17 +15,8 @@ import numpy as np
 import scipy
 import scipy.optimize as optimize
 import pandas as pd
-from matplotlib import pyplot as plt
 
 import copy, inspect, warnings, sys, datetime
-
-class FitNotRunError(Exception):
-    """
-    Throw when the fit has not been run but the output only makes sense after
-    the fit has been done.
-    """
-
-    pass
 
 
 class GlobalFit:
@@ -475,140 +466,20 @@ class GlobalFit:
 
         self._prep_fit()
 
-    def plot(self,fig=None,ax=None,
-             correct_molar_ratio=False,subtract_dilution=False,
-             normalize_heat_to_shot=False,color_list=None,
-             data_symbol="o",linewidth=1.5,num_samples=100):
-        """
-        Plot the experimental data and fit results.
-
-        Parameters
-        ----------
-        correct_molar_ratio : bool
-            correct the molar ratio using fx_competent
-        subtract_dilution : bool
-            subtract the heat of dilution
-        normalize_heat_to_shot : bool
-            divide heats by mols titrant injected
-        color_list : list of things matplotlib can interpret as colors
-            color of each series
-        data_symol : character
-            symbol to use to plot data
-        linewidth : float
-            width of line for fits
-        num_samples : int
-            number of samples to draw when drawing fits like Bayesian fits with
-            multiple fits.
-
-        Returns matplotlib Figure and AxesSubplot instances that can be further
-        manipulated by the user of the API.
-        """
-
-        # Make list of colors
-        if color_list == None:
-            N = len(self._expt_list_stable_order)
-            color_list = [plt.cm.brg(i/N) for i in range(N)]
-
-        # Sanity check on colors
-        if len(color_list) < len(self._expt_list_stable_order):
-            err = "Number of specified colors is less than number of experiments.\n"
-            raise ValueError(err)
-
-        try:
-            # If there are samples:
-            if len(self._fitter.samples) > 0:
-                s = self._fitter.samples
-                these_samples = s[np.random.randint(len(s),size=num_samples)]
-            else:
-                these_samples = [self._fitter.estimate]
-        except AttributeError:
-
-            # If fit has not been done, create dummy version
-            self._prep_fit()
-            these_samples = [np.array(self._flat_param)]
-
-        # If there are multiple samples, assign them partial transparency
-        if len(these_samples) == 1:
-            alpha = 1.0
-        else:
-            alpha = 1/len(these_samples)
-            if alpha < 0.01:
-                alpha = 0.01
-
-        fig = None
-        ax = None
-
-        print(alpha)
-        for i, s in enumerate(these_samples):
-
-            # Update calculation for this sample
-            self._y_calc(s)
-            for j, expt_name in enumerate(self._expt_list_stable_order):
-
-                # Extract fit info for this experiment
-                e = self._expt_dict[expt_name]
-                fig, ax = e.plot(fig,ax,
-                                 color=color_list[j],alpha=alpha,
-                                 draw_fit=True,draw_expt=False)
-
-                mr = e.mole_ratio
-                obs = e.obs
-                calc = self._expt_dict[expt_name].predicted
-
-                if len(calc) > 0:
-
-                    # Try to correct molar ratio for competent fraction
-                    if correct_molar_ratio:
-                        try:
-                            mr = mr/e.param_values["fx_competent"]
-                        except KeyError:
-                            pass
-
-                    # Subtract dilution is requested
-                    if subtract_dilution:
-                        obs = obs - e.dilution_heats
-                        calc = calc - e.dilution_heats
-
-                    if normalize_heat_to_shot:
-                        obs = obs/e.mol_injected
-                        calc = calc/e.mol_injected
-
-                # Draw fit lines and residuals
-                if len(e.predicted) > 0:
-                    ax[0].plot(mr,calc,color=color_list[j],linewidth=linewidth,alpha=alpha)
-                    ax[1].plot(mr,(calc-obs),data_symbol,color=color_list[j],alpha=alpha,markersize=8)
-
-                # If this is the last sample, plot the experimental data
-                if i == len(these_samples) - 1:
-                    fig, ax = e.plot(fig,ax,
-                                     color=color_list[j],
-                                     draw_fit=False,draw_expt=True)
-
-        fig.set_tight_layout(True)
-
-        return fig, ax
-
-
-    def corner_plot(self,filter_params=("competent","dilution","intercept","heat")):
-        """
-        Create a "corner plot" that shows distributions of values for each
-        parameter, as well as cross-correlations between parameters.
-
-        Parameters
-        ----------
-        param_names : list
-            list of parameter names to include.  if None all parameter names
-        """
-
-        try:
-            return self._fitter.corner_plot(filter_params)
-        except AttributeError:
-            # If the fit has not been done, return an empty plot
-            dummy_fig = plt.figure(figsize=(5.5,6))
-            return dummy_fig
 
     # -------------------------------------------------------------------------
     # Properties describing fit results
+
+    @property
+    def fitter(self):
+        """
+        Underlying fit object.
+        """
+
+        try:
+            return self._fitter
+        except AttributeError:
+            return None
 
     @property
     def fit_summary(self):

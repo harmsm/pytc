@@ -10,6 +10,6 @@ __date__ = "2016-06-22"
 import numpy as np
 from ..base import PytcModel
 
-class SpectroscopicModel(PytcModel):
+class GenericModel(PytcModel):
 
     pass

@@ -3,7 +3,7 @@ from .base import PytcExperiment
 
 import numpy as np
 
-class SpectroscopicExperiment(PytcExperiment):
+class GenericExperiment(PytcExperiment):
 
     def __init__(self,
                  data_file,

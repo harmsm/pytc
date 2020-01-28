@@ -267,12 +267,23 @@ class BaseITCExperiment(PytcExperiment):
 
         # Draw fit lines and residuals
         if draw_fit and len(self.predicted) > 0:
-            ax[0].plot(mr,calc,color=color,linewidth=linewidth,alpha=alpha)
+
+            marker_style = dict(color=color,
+                                linestyle='-',
+                                linewidth=linewidth,
+                                alpha=alpha,
+                                marker=data_symbol,
+                                markersize=markersize*2,
+                                markerfacecoloralt=color,
+                                fillstyle="none")
+
+            ax[0].plot(mr,calc,**marker_style)
             ax[1].plot(mr,(calc-obs),data_symbol,color=color,alpha=alpha,markersize=markersize)
 
         # If this is the last sample, plot the experimental data
         if draw_expt:
-            ax[0].errorbar(mr,obs,obs_stdev,fmt=data_symbol,color=color,markersize=markersize)
+            ax[0].errorbar(mr,obs,obs_stdev,fmt=data_symbol,color=color,
+                           markersize=markersize,linestyle='none')
 
         fig.set_tight_layout(True)
 
