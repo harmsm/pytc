@@ -250,9 +250,8 @@ def species_conc(Kf,Kd,Ks,K1,K2,
     """
     Get species of U, M, D, Ds, DsC1, DsC2, DsC3 and DsC4 given the equilibrium
     constants and the total protein and calcium concentrations.  This is the
-    core, publically implementation of the model.  The equilibrium values must
-    be floats.  The concentrations may be floats or arrays, where all arrays
-    have the same length.
+    core, publically implementation of the model.  The equilibrium constants and
+    concentrations may be floats or arrays, where all arrays have the same length.
 
     Kf: folding equilibrium constant (Kf = M/U)
     Kd: dimerization equilibriucm constant (Kd=D/(M*M))
@@ -269,8 +268,6 @@ def species_conc(Kf,Kd,Ks,K1,K2,
 
     returns: U, M, D, Ds, DsC1, DsC2, DsC3, DsC4
     """
-
-
 
     mismatch_error = False
     values = [Kf,Kd,Ks,K1,K2,Pt,Ct]
