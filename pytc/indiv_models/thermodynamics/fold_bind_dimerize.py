@@ -127,15 +127,16 @@ def _C_residual(params,Kf,Kd,Ks,K1,K2,Pt,Ct):
     # Return difference between actual and total
     return np.array([r_c,r_p])
 
-def species_conc(Kf,Kd,Ks,K1,K2,
+def _species_conc(Kf,Kd,Ks,K1,K2,
                  Pt,Ct,
                  convergence_cutoff=0.01,
                  guess_resolution=0.1,
                  verbose=False):
     """
     Get species of U, M, D, Ds, DsC1, DsC2, DsC3 and DsC4 given the equilibrium
-    constants and the total protein and calcium concentrations.  This is the
-    core, publically implementation of the model.
+    constants and the total protein and calcium concentrations. This function
+    is private and assumes that Pt and Ct are both floats.  The public function
+    does sanity checking and allows Pt and Ct to be arrays.
 
     Kf: folding equilibrium constant (Kf = M/U)
     Kd: dimerization equilibriucm constant (Kd=D/(M*M))
@@ -237,5 +238,100 @@ def species_conc(Kf,Kd,Ks,K1,K2,
     if U < 0:
         err = "No positive value for [U] was found\n"
         raise RuntimeError(err)
+
+    return U, M, D, Ds, DsC1, DsC2, DsC3, DsC4, C
+
+
+def species_conc(Kf,Kd,Ks,K1,K2,
+                 Pt,Ct,
+                 convergence_cutoff=0.01,
+                 guess_resolution=0.1,
+                 verbose=False):
+    """
+    Get species of U, M, D, Ds, DsC1, DsC2, DsC3 and DsC4 given the equilibrium
+    constants and the total protein and calcium concentrations.  This is the
+    core, publically implementation of the model.  The equilibrium values must
+    be floats.  The concentrations may be floats or arrays, where all arrays
+    have the same length.
+
+    Kf: folding equilibrium constant (Kf = M/U)
+    Kd: dimerization equilibriucm constant (Kd=D/(M*M))
+    Ks: apo to active dimer (Ks=Ds/D)
+    K1: binding at stronger calcium binding site (K1=DsC1/(Ds*C)=DsC2/(DsC1*C))
+    K2: binding at weaker calcium binding site (K2=DsC3/(DsC2*C)=DsC4/(DsC3*C))
+    Pt: total protein monomer concentration
+    Ct: total calcium concentration
+
+    convergence_cutoff: percent difference between actual and calculated totals
+    guess_resolution: if the first guess doesn't succeed, try another guess that
+                      is guess-resolution away
+    verbose: if True, record all all residuals and spit out if regression fails.
+
+    returns: U, M, D, Ds, DsC1, DsC2, DsC3, DsC4
+    """
+
+
+
+    mismatch_error = False
+    values = [Kf,Kd,Ks,K1,K2,Pt,Ct]
+    is_array = [type(v) is pd.Series or type(v) is np.ndarray for v in values]
+
+    # We have a series somewhere.  Make sure all series have the same length
+    # and record this as series_length
+    if sum(is_array) > 0:
+        lengths = set([len(v) for i, v in enumerate(values) if is_array[i]])
+        if len(lengths) != 1:
+            mismatch_error = True
+        else:
+            series_length = list(lengths)[0]
+
+    # No series.  series_length is 1.
+    else:
+        series_length = 1
+
+    if mismatch_error:
+        err = "Kf, Kd, Ks, K1, K2, Pt and Ct must either be float values or\n"
+        err += "arrays.  Any arrays that are present must have the same length.\n"
+        raise ValueError(err)
+
+    # Go through values and either cast the series/array as an array or
+    # repeat single values series_length times as arrays
+    for i in range(len(values)):
+        if is_array[i]:
+            values[i] = np.array(values[i])
+        else:
+            values[i] = np.array([values[i] for _ in range(series_length)])
+
+    # Pull values out of array
+    Kf, Kd, Ks, K1, K2, Pt, Ct = values
+
+
+    U, M, D, Ds, DsC1, DsC2, DsC3, DsC4, C = [], [], [], [], [], [], [], [], []
+    for i in range(len(Pt)):
+
+        concs = _species_conc(Kf[i],Kd[i],Ks[i],K1[i],K2[i],
+                              Pt[i],Ct[i],
+                              convergence_cutoff=convergence_cutoff,
+                              guess_resolution=guess_resolution,
+                              verbose=verbose)
+        U.append(concs[0])
+        M.append(concs[1])
+        D.append(concs[2])
+        Ds.append(concs[3])
+        DsC1.append(concs[4])
+        DsC2.append(concs[5])
+        DsC3.append(concs[6])
+        DsC4.append(concs[7])
+        C.append(concs[8])
+
+    U = np.array(U)
+    M = np.array(M)
+    D = np.array(D)
+    Ds = np.array(Ds)
+    DsC1 = np.array(DsC1)
+    DsC2 = np.array(DsC2)
+    DsC3 = np.array(DsC3)
+    DsC4 = np.array(DsC4)
+    C = np.array(C)
 
     return U, M, D, Ds, DsC1, DsC2, DsC3, DsC4, C
