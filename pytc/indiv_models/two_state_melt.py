@@ -5,12 +5,12 @@ __description__ = \
 __author__ = "Michael J. Harms"
 __date__ = "2020-01-28"
 
-from .base import GenericModel
+from .base import PytcModel
 from ..thermodynamics import two_state_melt
 
 import numpy as np
 
-class TwoStateMelt(GenericModel):
+class TwoStateMelt(PytcModel):
 
     default_param_guesses = {"Ku":1e6,
                              "F_signal":1.0,

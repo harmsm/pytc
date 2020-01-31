@@ -6,12 +6,12 @@ of the protein human S100A9.
 __author__ = "Michael J. Harms"
 __date__ = "2020-01-28"
 
-from .base import GenericModel
+from .base import PytcModel
 from ..thermodynamics import fold_bind
 
 import numpy as np
 
-class FoldBind(GenericModel):
+class FoldBind(PytcModel):
 
     default_param_guesses = {"Kf":1e6,
                              "Ks":1e6,

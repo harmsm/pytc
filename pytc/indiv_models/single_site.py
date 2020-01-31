@@ -7,10 +7,10 @@ Base class for all model description.
 __author__ = "Michael J. Harms"
 __date__ = "2016-06-22"
 
-from .base import GenericModel
+from .base import PytcModel
 from ..thermodynamics import single_site_binding
 
-class SingleSite(GenericModel):
+class SingleSite(PytcModel):
 
     default_param_guesses = {"Kd":1e-6,
                              "P_signal":0.0,
